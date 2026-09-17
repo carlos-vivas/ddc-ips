@@ -16,7 +16,7 @@ export default function Trabaja() {
         <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
           <figure className="relative min-h-[52vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
             <img
-              src="/images/trabaja.jpg"
+              src="/trabaja_nosotros.jpeg"
               alt="Equipo de ambulancia junto a un vehículo de traslado asistencial"
               className="absolute inset-0 size-full object-cover"
             />
