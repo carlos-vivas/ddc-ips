@@ -201,10 +201,6 @@ export default function Home() {
             <h2 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] max-w-3xl">
               Misión, visión y política institucional
             </h2>
-            <p className="mt-4 text-muted leading-relaxed max-w-2xl">
-              Marco institucional de DDC IPS SAS: propósito, horizonte y
-              política de seguridad del paciente.
-            </p>
 
             <EcgLine className="mt-10 text-ink" />
 
