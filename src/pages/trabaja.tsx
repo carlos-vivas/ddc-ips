@@ -38,20 +38,17 @@ export default function Trabaja() {
             <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.08]">
               Trabaja con nosotros
             </h1>
-            <p className="mt-5 text-lg text-muted leading-relaxed max-w-md">
-              DDC IPS SAS recibe hojas de vida de conductores, TAPH, enfermeros
-              y médicos para las líneas de transporte asistencial básico y
-              medicalizado.
+            <p className="mt-5 font-display text-2xl md:text-3xl font-medium leading-snug text-ink max-w-md">
+              ¡Queremos conocerte!
+            </p>
+            <p className="mt-3 text-lg text-muted leading-relaxed max-w-md">
+              Si tienes vocación de servicio y quieres ser parte de nuestro
+              equipo, envíanos tu hoja de vida.
             </p>
 
-            <ul className="mt-8 flex flex-wrap gap-2">
-              {["Conductores", "TAPH", "Enfermeros", "Médicos"].map((rol) => (
-                <li
-                  key={rol}
-                  className="rounded-full bg-white px-3.5 py-1.5 text-sm font-semibold text-ink ring-1 ring-[#e4dccf]"
-                >
-                  {rol}
-                </li>
+            <ul className="mt-6 list-disc marker:text-life pl-6 space-y-2 text-lg text-ink max-w-md">
+              {["Conductores", "Auxiliares de enfermería", "Técnico APH", "Médico"].map((rol) => (
+                <li key={rol}>{rol}</li>
               ))}
             </ul>
 
