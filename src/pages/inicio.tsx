@@ -6,14 +6,12 @@ const servicios = [
   {
     tag: "TAB",
     titulo: "Transporte Asistencial Básico",
-    lead: "Modalidad habilitada para pacientes en condición estable.",
     desc: "El transporte asistencial básico se presta en ambulancias TAB, con auxiliar de enfermería, conductor entrenado, camilla, oxígeno y monitoreo básico. Aplica a traslados de pacientes estables, citas y altas.",
     specs: ["Auxiliar de enfermería", "Conductor entrenado", "Oxígeno y monitoreo"],
   },
   {
     tag: "TAM",
     titulo: "Transporte Asistencial Medicalizado",
-    lead: "Modalidad habilitada para pacientes en estado crítico.",
     desc: "El transporte asistencial medicalizado se presta en ambulancias TAM, con médico y enfermera, soporte vital avanzado, ventilación mecánica y monitoreo continuo.",
     specs: ["Médico y enfermera", "Ventilación mecánica", "Monitoreo continuo"],
   },
@@ -150,14 +148,10 @@ export default function Home() {
 
         <section id="servicios" className="relative bg-white scroll-mt-32">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-28">
-            <div className="grid gap-6 lg:grid-cols-[1fr_minmax(0,28rem)] lg:items-end lg:gap-16">
+            <div>
               <h2 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1]">
                 Servicios habilitados
               </h2>
-              <p className="text-muted leading-relaxed">
-                Líneas de atención autorizadas: transporte asistencial básico,
-                transporte asistencial medicalizado y ambulancias de la institución.
-              </p>
             </div>
 
             <div className="mt-14">
@@ -179,13 +173,15 @@ export default function Home() {
                       {s.tag === s.titulo && (
                         <h3 className="sr-only">{s.titulo}</h3>
                       )}
-                      <p
-                        className={`${s.tag !== s.titulo ? "mt-1" : ""} ${
-                          s.tag === "Ambulancias" ? "font-bold text-ink" : "text-muted"
-                        }`}
-                      >
-                        {s.lead}
-                      </p>
+                      {"lead" in s && (s as { lead?: string }).lead ? (
+                        <p
+                          className={`${s.tag !== s.titulo ? "mt-1" : ""} ${
+                            s.tag === "Ambulancias" ? "font-bold text-ink" : "text-muted"
+                          }`}
+                        >
+                          {(s as { lead?: string }).lead}
+                        </p>
+                      ) : null}
                       <p className="mt-4 leading-relaxed text-slate-600">{s.desc}</p>
                     </div>
                     <ul className="list-disc marker:text-life pl-5 space-y-1 text-sm text-ink/80 lg:pt-1">
