@@ -55,9 +55,13 @@ export default function Pqrs() {
             <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.08]">
               PQRS
             </h1>
-            <p className="mt-5 text-lg text-muted leading-relaxed max-w-2xl">
-              Canal institucional para radicar peticiones, quejas, reclamos
-              o sugerencias relacionadas con los servicios de la institución.
+            <p className="mt-5 font-display text-2xl md:text-3xl font-medium leading-snug text-ink max-w-2xl">
+              Tu opinión es importante para nosotros
+            </p>
+            <p className="mt-3 text-lg text-muted leading-relaxed max-w-2xl">
+              Queremos escucharte y seguir mejorando. A través de este canal
+              puedes presentar tus peticiones, quejas, reclamos o sugerencias
+              relacionadas con nuestros servicios.
             </p>
 
             {radicado ? (
