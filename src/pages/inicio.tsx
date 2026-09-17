@@ -95,11 +95,11 @@ export default function Home() {
 
       <main id="inicio" className="bg-white text-ink">
         <section className="relative overflow-hidden bg-[#1a1214]">
-          <div className="relative min-h-[52vh] md:min-h-[62vh]">
+          <div className="relative min-h-[60vh] md:min-h-[72vh]">
             <img
               src="/header_principal"
               alt=""
-              className="absolute inset-0 size-full object-cover object-[center_42%]"
+              className="absolute inset-0 size-full object-cover object-[center_22%]"
             />
             <div
               className="absolute inset-0 bg-black/45"
