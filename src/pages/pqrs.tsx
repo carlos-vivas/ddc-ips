@@ -33,7 +33,7 @@ export default function Pqrs() {
         <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
           <figure className="relative min-h-[36vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
             <img
-              src="/images/pqrs.jpg"
+              src="/pqrs.jpeg"
               alt="Atención al usuario en la institución"
               className="absolute inset-0 size-full object-cover"
             />
