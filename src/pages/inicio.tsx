@@ -6,14 +6,14 @@ const servicios = [
   {
     tag: "TAB",
     titulo: "Transporte Asistencial Básico",
-    desc: "El transporte asistencial básico se presta en ambulancias TAB, con auxiliar de enfermería, conductor entrenado, camilla, oxígeno y monitoreo básico. Aplica a traslados de pacientes estables, citas y altas.",
-    specs: ["Auxiliar de enfermería", "Conductor entrenado", "Oxígeno y monitoreo"],
+    desc: "El transporte asistencial básico se presta en ambulancias TAB, con auxiliar de enfermería, conductor entrenado, camilla, oxígeno y monitoreo básico. Aplica a traslados de pacientes estables, citas y altas. La tripulación está conformada por:",
+    specs: ["Auxiliar de enfermería", "Conductor"],
   },
   {
     tag: "TAM",
     titulo: "Transporte Asistencial Medicalizado",
-    desc: "El transporte asistencial medicalizado se presta en ambulancias TAM, con médico y enfermera, soporte vital avanzado, ventilación mecánica y monitoreo continuo.",
-    specs: ["Médico y enfermera", "Ventilación mecánica", "Monitoreo continuo"],
+    desc: "El transporte asistencial medicalizado se presta en ambulancias TAM, con médico y enfermera, soporte vital avanzado, ventilación mecánica y monitoreo continuo. La tripulación está conformada por:",
+    specs: ["Médico", "Auxiliar de enfermería", "Conductor"],
   },
   {
     tag: "Ambulancias",
