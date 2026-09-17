@@ -30,7 +30,7 @@ export default function Pqrs() {
       <Navbar />
 
       <main className="bg-white text-ink">
-        <section className="grid lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] min-h-[calc(100svh-7.5rem)]">
+        <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
           <figure className="relative min-h-[52vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
             <img
               src="/images/pqrs.jpg"
