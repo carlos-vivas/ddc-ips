@@ -229,17 +229,21 @@ export default function Home() {
                 Política de seguridad del paciente
               </h3>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-4xl">
-                Garantizar la seguridad del paciente de acuerdo con los
-                procedimientos institucionales por medio de un talento humano
-                capacitado y fortalecido en las buenas prácticas para la
-                generación de entornos seguros a los pacientes y acompañantes
-                en los servicios de salud prestados.
+                La política de Seguridad del Paciente en DDC IPS SAS contempla
+                el conjunto de prácticas institucionales tendientes a aumentar
+                los niveles de seguridad en la prestación del servicio
+                protegiendo con ello al paciente de riesgos evitables derivados
+                de la atención en salud.
               </p>
-              <ul className="mt-6 list-disc marker:text-life pl-5 space-y-2 text-sm text-ink/85 max-w-xl">
-                <li>Procedimientos institucionales</li>
-                <li>Talento humano capacitado</li>
-                <li>Entornos seguros para acompañantes</li>
-              </ul>
+              <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-4xl">
+                Nuestro objetivo es el de desarrollar la cultura de seguridad
+                para el usuario, fomentando en nuestros colaboradores, en
+                nuestros usuarios y en sus familias el desarrollo de acciones de
+                identificación, prevención y gestión de riesgos relacionados con
+                el proceso de atención. Nuestras acciones se encaminan en la
+                búsqueda de la satisfacción de nuestro usuario y su familia
+                “Juntos construyendo una atención segura”.
+              </p>
             </article>
 
             <div className="mt-20">
