@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 
@@ -79,6 +79,54 @@ function EcgLine({ className = "" }: { className?: string }) {
 }
 
 export default function Home() {
+  const [visitas, setVisitas] = useState<number | null>(null);
+  const [visitasView, setVisitasView] = useState(0);
+
+  useEffect(() => {
+    try {
+      const key = "ddc-ips-visitas";
+      const actual = Number(window.localStorage.getItem(key) ?? "0") || 0;
+      const siguiente = actual + 1;
+      window.localStorage.setItem(key, String(siguiente));
+      setVisitas(siguiente);
+    } catch {
+      setVisitas(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (visitas === null) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      visitas <= 1
+    ) {
+      setVisitasView(visitas);
+      return;
+    }
+    if (visitas > 500) {
+      let raf = 0;
+      const inicio = performance.now();
+      const duracion = 1400;
+      const animar = (ahora: number) => {
+        const t = Math.min(1, (ahora - inicio) / duracion);
+        const eased = 1 - Math.pow(1 - t, 3);
+        setVisitasView(Math.round(eased * visitas));
+        if (t < 1) raf = requestAnimationFrame(animar);
+      };
+      raf = requestAnimationFrame(animar);
+      return () => cancelAnimationFrame(raf);
+    }
+    setVisitasView(0);
+    let actual = 0;
+    const paso = Math.max(40, Math.min(160, Math.floor(1200 / visitas)));
+    const id = window.setInterval(() => {
+      actual += 1;
+      setVisitasView(actual);
+      if (actual >= visitas) window.clearInterval(id);
+    }, paso);
+    return () => window.clearInterval(id);
+  }, [visitas]);
+
   useEffect(() => {
     document.title = "DDC IPS SAS · Transporte asistencial";
     const hash = window.location.hash;
@@ -200,6 +248,41 @@ export default function Home() {
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section
+          aria-label="Contador de visitas"
+          className="relative overflow-hidden bg-accent-deep text-white"
+        >
+          <div
+            aria-hidden="true"
+            className="absolute -top-28 left-1/2 size-96 -translate-x-1/2 rounded-full bg-white/10 blur-3xl"
+          />
+          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24 text-center">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-white/80 ring-1 ring-white/20">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4"
+                aria-hidden="true"
+              >
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Contador de visitas
+            </p>
+            <p className="mt-6 font-sans text-7xl md:text-8xl font-extrabold tracking-tight tabular-nums">
+              {visitas === null ? "—" : visitasView.toLocaleString("es-CO")}
+            </p>
+            <p className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
+              Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
+              seguir mejorando.
+            </p>
           </div>
         </section>
 
