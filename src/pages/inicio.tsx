@@ -259,7 +259,7 @@ export default function Home() {
             aria-hidden="true"
             className="absolute -top-28 left-1/2 size-96 -translate-x-1/2 rounded-full bg-white/10 blur-3xl"
           />
-          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24 text-center">
+          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14 text-center">
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-white/80 ring-1 ring-white/20">
               <svg
                 viewBox="0 0 24 24"
@@ -276,10 +276,24 @@ export default function Home() {
               </svg>
               Contador de visitas
             </p>
-            <p className="mt-6 font-sans text-7xl md:text-8xl font-extrabold tracking-tight tabular-nums">
-              {visitas === null ? "—" : visitasView.toLocaleString("es-CO")}
-            </p>
-            <p className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
+            <div
+              className="mt-6 flex items-center justify-center gap-2"
+              role="status"
+              aria-label={`${visitas ?? 0} visitas`}
+            >
+              {(visitas === null
+                ? ["—"]
+                : String(visitasView).padStart(4, "0").split("")
+              ).map((d, i) => (
+                <span
+                  key={i}
+                  className="min-w-11 md:min-w-16 rounded-lg bg-black/40 px-2.5 py-2.5 md:py-3 text-center font-mono text-3xl md:text-5xl font-bold tabular-nums text-white ring-1 ring-white/25 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]"
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-base text-white/80 max-w-xl mx-auto">
               Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
               seguir mejorando.
             </p>
