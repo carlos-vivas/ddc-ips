@@ -6,20 +6,20 @@ const servicios = [
   {
     tag: "TAB",
     titulo: "Transporte Asistencial Básico",
-    desc: "El transporte asistencial básico se presta en ambulancias TAB, con auxiliar de enfermería, conductor entrenado, camilla, oxígeno y monitoreo básico. Aplica a traslados de pacientes estables, citas y altas. La tripulación está conformada por:",
+    desc: "Trasladamos pacientes que requieren acompañamiento asistencial durante su recorrido, brindando atención segura, oportuna y humanizada.",
     specs: ["Auxiliar de enfermería", "Conductor"],
   },
   {
     tag: "TAM",
     titulo: "Transporte Asistencial Medicalizado",
-    desc: "El transporte asistencial medicalizado se presta en ambulancias TAM, con médico y enfermera, soporte vital avanzado, ventilación mecánica y monitoreo continuo. La tripulación está conformada por:",
+    desc: "Trasladamos pacientes que requieren atención médica y soporte asistencial durante el recorrido, con los recursos necesarios para una atención segura y continua.",
     specs: ["Médico", "Auxiliar de enfermería", "Conductor"],
   },
   {
     tag: "Ambulancias",
     titulo: "Ambulancias",
-    lead: "Unidades habilitadas de la institución.",
-    desc: "La institución cuenta con ambulancias habilitadas, con dotación completa y condiciones de bioseguridad conforme a la normativa vigente.",
+    lead: "Seguridad en cada traslado",
+    desc: "Nuestras ambulancias cuentan con la dotación y condiciones necesarias para brindar una atención segura y de calidad durante cada traslado.",
     specs: ["Dotación completa", "Bioseguridad", "Habilitación vigente"],
   },
 ];
@@ -184,11 +184,18 @@ export default function Home() {
                       ) : null}
                       <p className="mt-4 leading-relaxed text-slate-600">{s.desc}</p>
                     </div>
-                    <ul className="list-disc marker:text-life pl-5 space-y-1 text-sm text-ink/80 lg:pt-1">
-                      {s.specs.map((spec) => (
-                        <li key={spec}>{spec}</li>
-                      ))}
-                    </ul>
+                    <div className="lg:pt-1">
+                      {(s.tag === "TAB" || s.tag === "TAM") && (
+                        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
+                          Tripulación
+                        </p>
+                      )}
+                      <ul className="list-disc marker:text-life pl-5 space-y-1 text-sm text-ink/80 mt-2">
+                        {s.specs.map((spec) => (
+                          <li key={spec}>{spec}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </article>
               ))}
