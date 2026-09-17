@@ -97,7 +97,7 @@ export default function Home() {
         <section className="relative overflow-hidden bg-[#1a1214]">
           <div className="relative min-h-[52vh] md:min-h-[62vh]">
             <img
-              src="/images/inicio-hero.jpg"
+              src="/header_principal"
               alt=""
               className="absolute inset-0 size-full object-cover object-[center_42%]"
             />
