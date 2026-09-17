@@ -33,7 +33,7 @@ const pilares = [
   {
     label: "Visión",
     quote: "Institución líder a nivel nacional en transporte asistencial.",
-    body: "Ser reconocidos como una institución líder a nivel nacional en la prestación de servicios de transporte asistencial básico y medicalizado, dando respuesta oportuna con estándares de calidad que evidencian el buen servicio a los usuarios, por medio de un talento humano idóneo para que los usuarios se sientan respetados, acogidos y cuidados.",
+    body: "Ser reconocidos como una institución líder a nivel nacional en la prestación de servicios de transporte asistencial básico y medicalizado, dando respuesta oportuna con estándares de calidad que evidencian el buen servicio por medio de un talento humano idóneo para que los usuarios se sientan respetados, acogidos y cuidados.",
   },
 ];
 
