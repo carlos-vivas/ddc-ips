@@ -6,7 +6,7 @@ import Footer from "../components/footer";
 const tiposSolicitud = ["Petición", "Queja", "Reclamo", "Sugerencia"];
 
 const inputClass =
-  "w-full rounded-xl bg-white px-5 py-3.5 text-base text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
+  "w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
 
 export default function Pqrs() {
   const [radicado, setRadicado] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function Pqrs() {
 
       <main className="bg-white text-ink">
         <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
-          <figure className="relative min-h-[52vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
+          <figure className="relative min-h-[36vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
             <img
               src="/images/pqrs.jpg"
               alt="Atención al usuario en la institución"
@@ -51,14 +51,14 @@ export default function Pqrs() {
             </figcaption>
           </figure>
 
-          <div className="relative flex flex-col justify-center px-6 py-16 md:px-12 lg:px-16 xl:px-20 paper-grain bg-paper">
-            <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.08]">
+          <div className="relative flex flex-col justify-center px-6 py-8 md:px-10 lg:px-12 paper-grain bg-paper">
+            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-[1.08]">
               PQRS
             </h1>
-            <p className="mt-5 font-display text-2xl md:text-3xl font-medium leading-snug text-ink max-w-2xl">
+            <p className="mt-3 font-display text-xl md:text-2xl font-medium leading-snug text-ink max-w-2xl">
               Tu opinión es importante para nosotros
             </p>
-            <p className="mt-3 text-lg text-muted leading-relaxed max-w-2xl">
+            <p className="mt-2 text-[15px] text-muted leading-relaxed max-w-2xl">
               Queremos escucharte y seguir mejorando. A través de este canal
               puedes presentar tus peticiones, quejas, reclamos o sugerencias
               relacionadas con nuestros servicios.
@@ -67,7 +67,7 @@ export default function Pqrs() {
             {radicado ? (
               <div
                 role="status"
-                className="mt-10 max-w-2xl rounded-2xl bg-white p-6 ring-1 ring-life/30"
+                className="mt-6 max-w-2xl rounded-2xl bg-white p-6 ring-1 ring-life/30"
               >
                 <p className="font-display text-2xl font-semibold tracking-tight text-ink">
                   Solicitud radicada
@@ -89,9 +89,9 @@ export default function Pqrs() {
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className="mt-10 w-full rounded-2xl bg-white/70 p-6 md:p-10 ring-1 ring-[#e4dccf]"
+                className="mt-6 w-full rounded-2xl bg-white/70 p-5 md:p-6 ring-1 ring-[#e4dccf]"
               >
-                <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Tipo de solicitud <span className="text-red-600">*</span>
@@ -153,9 +153,9 @@ export default function Pqrs() {
                     </span>
                     <textarea
                       required
-                      rows={7}
+                      rows={3}
                       placeholder="Describe los hechos, fecha y lugar relacionados con tu solicitud…"
-                      className={`${inputClass} resize-y min-h-40`}
+                      className={`${inputClass} resize-none`}
                     />
                   </label>
 
@@ -174,7 +174,7 @@ export default function Pqrs() {
 
                 <button
                   type="submit"
-                  className="mt-8 w-full rounded-full bg-accent px-6 py-4 text-base font-bold uppercase tracking-widest text-white hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                  className="mt-5 w-full rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-widest text-white hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                 >
                   Enviar PQRS
                 </button>
