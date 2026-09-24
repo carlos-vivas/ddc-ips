@@ -4,6 +4,7 @@ const links = [
   { label: 'Inicio', href: '/' },
   { label: 'Servicios', href: '/#servicios' },
   { label: 'Nosotros', href: '/#nosotros' },
+  { label: 'Derechos y deberes', href: '/#derechos' },
   { label: 'Trabaja con nosotros', href: '/trabaja-con-nosotros' },
   { label: 'PQRS', href: '/pqrs' },
 ];

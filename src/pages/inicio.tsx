@@ -43,6 +43,26 @@ const tickerItems = [
   "Ambulancias",
 ];
 
+const derechos = [
+  "Recibir un trato digno, respetuoso y humanizado sin distinción alguna.",
+  "Recibir atención segura, oportuna y de calidad, de acuerdo con la necesidad del servicio.",
+  "Recibir información clara, completa y veraz sobre su estado de salud y el servicio que se le presta.",
+  "Tener confidencialidad y reserva sobre su información personal y clínica.",
+  "Participar en las decisiones relacionadas con su atención y a expresar sus inquietudes.",
+  "Presentar peticiones, quejas, reclamos, sugerencias y felicitaciones y recibir respuesta oportuna.",
+  "Recibir los servicios de transporte asistencial de acuerdo con la autorización y la disponibilidad.",
+];
+
+const deberes = [
+  "Tratar con respeto, amabilidad y consideración al personal de la IPS y a los demás usuarios.",
+  "Suministrar información veraz, completa y oportuna sobre su estado de salud y datos personales.",
+  "Seguir las indicaciones y recomendaciones del personal de salud y del equipo de transporte.",
+  "Cumplir con los horarios y tiempos establecidos para la prestación del servicio.",
+  "Hacer buen uso de los recursos, equipos e instalaciones de la IPS y del vehículo asistencial.",
+  "No agredir verbal ni físicamente al personal de salud ni a otros usuarios.",
+  "Cumplir con las normas y políticas institucionales durante la prestación del servicio.",
+];
+
 function StarOfLife({ className = "size-4" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
@@ -364,6 +384,73 @@ export default function Home() {
                   <span className="font-bold text-ink">Respeto.</span> Trato digno, acogedor y humano siempre.
                 </li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="derechos"
+          className="relative bg-paper text-ink scroll-mt-32 border-t border-slate-200"
+        >
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-28">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-life">
+              DDC IPS SAS · Transporte Asistencial
+            </p>
+            <h2 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] max-w-3xl">
+              Derechos y deberes de nuestros usuarios y acompañantes
+            </h2>
+            <p className="mt-5 text-lg text-muted leading-relaxed max-w-2xl">
+              En DDC IPS SAS trabajamos por una atención segura, humanizada y de
+              calidad.
+            </p>
+            <p className="mt-2 font-display text-xl md:text-2xl font-medium text-ink">
+              ¡Su bienestar es nuestra prioridad!
+            </p>
+
+            <div className="mt-14 grid lg:grid-cols-2 gap-12 lg:gap-16 lg:items-start">
+              {[
+                { titulo: "Derechos", items: derechos },
+                { titulo: "Deberes", items: deberes },
+              ].map((grupo) => (
+                <article
+                  key={grupo.titulo}
+                  className="border-l-[6px] border-life pl-5 md:pl-7"
+                >
+                  <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
+                    {grupo.titulo}
+                  </h3>
+                  <ol className="mt-6 space-y-4">
+                    {grupo.items.map((item, i) => (
+                      <li key={item} className="flex gap-3">
+                        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[13px] font-bold text-white">
+                          {i + 1}
+                        </span>
+                        <span className="text-[15px] leading-relaxed text-slate-600">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-16 rounded-2xl bg-accent-deep text-white p-6 md:p-10">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/70">
+                Mensaje institucional
+              </p>
+              <p className="mt-3 font-display text-2xl md:text-3xl font-medium leading-snug max-w-2xl">
+                Trabajamos con compromiso y vocación para cuidar de ti.
+              </p>
+              <p className="mt-5 text-lg text-white/85 max-w-2xl">
+                ¡Gracias por confiar en nosotros! ♡
+              </p>
+              <p className="mt-2 text-lg text-white/85 max-w-2xl">
+                Su participación es fundamental para seguir mejorando.
+              </p>
+              <p className="mt-2 font-display text-xl md:text-2xl font-semibold max-w-2xl">
+                ¡Juntos construimos una mejor atención!
+              </p>
             </div>
           </div>
         </section>

@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white text-sm text-slate-600">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 grid gap-10 md:grid-cols-2">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <div className="flex items-center">
             <img
@@ -25,6 +25,12 @@ export default function Footer() {
             <li><a href="/" className="hover:text-accent">Inicio</a></li>
             <li><a href="/#servicios" className="hover:text-accent">Servicios</a></li>
             <li><a href="/#nosotros" className="hover:text-accent">Nosotros</a></li>
+          </ul>
+        </nav>
+
+        <nav aria-label="Enlaces institucionales">
+          <p className="font-bold text-slate-900 uppercase text-xs tracking-[0.14em]">Institucional</p>
+          <ul className="mt-4 space-y-2.5 font-medium">
             <li><a href="/trabaja-con-nosotros" className="hover:text-accent">Trabaja con nosotros</a></li>
             <li><a href="/pqrs" className="hover:text-accent">PQRS</a></li>
           </ul>

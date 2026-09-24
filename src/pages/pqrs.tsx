@@ -10,19 +10,46 @@ const inputClass =
 
 export default function Pqrs() {
   const [radicado, setRadicado] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "PQRS · DDC IPS";
     window.scrollTo(0, 0);
   }, []);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
+    setEnviando(true);
+
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form));
     const numero = `PQRS-${new Date().getFullYear()}-${Math.floor(
       1000 + Math.random() * 9000,
     )}`;
-    setRadicado(numero);
-    window.scrollTo(0, 0);
+
+    try {
+      const response = await fetch("/api/contacto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asunto: `${numero} - ${data.tipo}`,
+          radicado: numero,
+          ...data,
+        }),
+      });
+      if (!response.ok) throw new Error("No se pudo enviar la solicitud");
+      setRadicado(numero);
+      form.reset();
+      window.scrollTo(0, 0);
+    } catch {
+      setError(
+        "No pudimos enviar tu solicitud. Intenta de nuevo o escríbenos por correo.",
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -96,7 +123,7 @@ export default function Pqrs() {
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Tipo de solicitud <span className="text-red-600">*</span>
                     </span>
-                    <select required defaultValue="" className={inputClass}>
+                    <select required name="tipo" defaultValue="" className={inputClass}>
                       <option value="" disabled>
                         Selecciona…
                       </option>
@@ -115,6 +142,7 @@ export default function Pqrs() {
                     <input
                       required
                       type="text"
+                      name="nombre"
                       autoComplete="name"
                       placeholder="Nombres y apellidos"
                       className={inputClass}
@@ -128,6 +156,7 @@ export default function Pqrs() {
                     <input
                       required
                       type="tel"
+                      name="telefono"
                       autoComplete="tel"
                       placeholder="300 000 0000"
                       className={inputClass}
@@ -141,6 +170,7 @@ export default function Pqrs() {
                     <input
                       required
                       type="email"
+                      name="correo"
                       autoComplete="email"
                       placeholder="correo@ejemplo.com"
                       className={inputClass}
@@ -153,6 +183,7 @@ export default function Pqrs() {
                     </span>
                     <textarea
                       required
+                      name="descripcion"
                       rows={3}
                       placeholder="Describe los hechos, fecha y lugar relacionados con tu solicitud…"
                       className={`${inputClass} resize-none`}
@@ -172,11 +203,21 @@ export default function Pqrs() {
                   </label>
                 </div>
 
+                {error && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200"
+                  >
+                    {error}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  className="mt-5 w-full rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-widest text-white hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                  disabled={enviando}
+                  className="mt-5 w-full rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-widest text-white hover:bg-accent-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-60"
                 >
-                  Enviar PQRS
+                  {enviando ? "Enviando…" : "Enviar PQRS"}
                 </button>
               </form>
             )}
