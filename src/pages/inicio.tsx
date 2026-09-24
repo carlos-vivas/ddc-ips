@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
 
@@ -68,32 +68,6 @@ function StarOfLife({ className = "size-4" }: { className?: string }) {
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
       <path d="M12 1.2 14.1 7h6.3l-5.1 3.7 1.9 5.9L12 13.8 6.8 16.6l1.9-5.9L3.6 7h6.3L12 1.2Z" />
       <path fill="#fff" d="M11.15 8.2h1.7v2.15h2.15v1.7H12.85v2.15h-1.7V12.05H9v-1.7h2.15V8.2Z" />
-    </svg>
-  );
-}
-
-function EcgLine({ className = "" }: { className?: string }) {
-  return (
-    <svg className={`h-10 w-full ${className}`} viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true">
-      <path
-        d="M0 20 H55 L63 20 L69 8 L75 32 L81 20 H135 L143 20 L149 8 L155 32 L161 20 H215 L223 20 L229 8 L235 32 L241 20 H300"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        className="text-slate-900/10"
-      />
-      <path
-        d="M0 20 H55 L63 20 L69 8 L75 32 L81 20 H135 L143 20 L149 8 L155 32 L161 20 H215 L223 20 L229 8 L235 32 L241 20 H300"
-        fill="none"
-        stroke="#1a9b52"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        strokeDasharray="46 254"
-        className="animate-ecg"
-      />
     </svg>
   );
 }
@@ -277,46 +251,44 @@ export default function Home() {
         >
           <div
             aria-hidden="true"
-            className="absolute -top-28 left-1/2 size-96 -translate-x-1/2 rounded-full bg-white/10 blur-3xl"
+            className="absolute -top-24 -right-20 size-96 rounded-full bg-white/10 blur-3xl"
           />
-          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14 text-center">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-white/80 ring-1 ring-white/20">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-4"
-                aria-hidden="true"
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-24 -left-20 size-96 rounded-full bg-life/10 blur-3xl"
+          />
+          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14">
+            <div className="mx-auto max-w-xl rounded-2xl bg-white/5 px-5 py-7 md:px-10 md:py-9 text-center ring-1 ring-white/10 backdrop-blur">
+              <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 ring-1 ring-white/20">
+                <StarOfLife className="size-3.5 text-white/80" />
+                Contador de visitas
+              </p>
+              <div
+                className="mt-6 flex items-end justify-center gap-1.5 md:gap-2.5"
+                role="status"
+                aria-label={`${visitas ?? 0} visitas`}
               >
-                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Contador de visitas
-            </p>
-            <div
-              className="mt-6 flex items-center justify-center gap-2"
-              role="status"
-              aria-label={`${visitas ?? 0} visitas`}
-            >
-              {(visitas === null
-                ? ["—"]
-                : String(visitasView).padStart(4, "0").split("")
-              ).map((d, i) => (
-                <span
-                  key={i}
-                  className="min-w-11 md:min-w-16 rounded-lg bg-black/40 px-2.5 py-2.5 md:py-3 text-center font-mono text-3xl md:text-5xl font-bold tabular-nums text-white ring-1 ring-white/25 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]"
-                >
-                  {d}
-                </span>
-              ))}
+                {(visitas === null
+                  ? ["—"]
+                  : String(visitasView).padStart(4, "0").split("")
+                ).map((d, i) => (
+                  <span
+                    key={i}
+                    className="min-w-10 md:min-w-14 rounded-xl bg-linear-to-b from-white/20 to-white/5 px-2.5 py-2 md:py-3 text-center font-display text-3xl md:text-4xl font-semibold tabular-nums text-white ring-1 ring-white/15 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]"
+                  >
+                    {d}
+                  </span>
+                ))}
+              </div>
+              <div
+                aria-hidden="true"
+                className="mx-auto mt-5 h-px w-32 bg-linear-to-r from-transparent via-white/40 to-transparent"
+              />
+              <p className="mt-4 text-sm md:text-base text-white/75 max-w-md mx-auto leading-relaxed">
+                Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
+                seguir mejorando.
+              </p>
             </div>
-            <p className="mt-3 text-base text-white/80 max-w-xl mx-auto">
-              Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
-              seguir mejorando.
-            </p>
           </div>
         </section>
 
@@ -326,26 +298,39 @@ export default function Home() {
               Misión, visión y política institucional
             </h2>
 
-            <EcgLine className="mt-10 text-ink" />
-
-            <div className="mt-12 grid lg:grid-cols-2 gap-12 lg:gap-16 lg:items-start">
-              {pilares.map((p) => (
-                <article key={p.label} className="border-l-[6px] border-life pl-5 md:pl-7">
-                  <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
-                    {p.label}
-                  </h3>
-                  <blockquote className="mt-4 font-display text-xl md:text-2xl font-medium leading-snug tracking-tight text-ink">
-                    {p.quote}
-                  </blockquote>
-                  <p className="mt-5 text-[15px] text-slate-600 leading-relaxed">
-                    {p.body}
-                  </p>
-                </article>
+            <div className="mt-12 grid lg:grid-cols-[1fr_auto_1fr] gap-10 lg:gap-16">
+              {pilares.map((p, i) => (
+                <Fragment key={p.label}>
+                  {i > 0 && (
+                    <div
+                      aria-hidden="true"
+                      className="flex items-center justify-center"
+                    >
+                      <span className="h-px w-full bg-linear-to-r from-transparent via-accent/40 to-transparent lg:h-full lg:w-px lg:bg-linear-to-b" />
+                    </div>
+                  )}
+                  <article>
+                    <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-accent">
+                      {p.label}
+                    </h3>
+                    <blockquote className="mt-4 font-display text-xl md:text-2xl font-medium leading-snug tracking-tight text-ink">
+                      {p.quote}
+                    </blockquote>
+                    <p className="mt-5 text-[15px] text-slate-600 leading-relaxed">
+                      {p.body}
+                    </p>
+                  </article>
+                </Fragment>
               ))}
             </div>
 
-            <article className="mt-16 border-l-[6px] border-life pl-5 md:pl-7">
-              <h3 className="font-display text-2xl md:text-3xl font-medium tracking-tight">
+            <div
+              aria-hidden="true"
+              className="mt-16 h-px w-full bg-linear-to-r from-transparent via-accent/40 to-transparent"
+            />
+
+            <article className="mt-12">
+              <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
                 Política de seguridad del paciente
               </h3>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600 max-w-4xl">
@@ -370,7 +355,7 @@ export default function Home() {
               <h3 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">
                 Valores institucionales
               </h3>
-              <ul className="mt-6 list-disc marker:text-life pl-5 space-y-3 text-[17px] text-slate-700 max-w-2xl leading-relaxed">
+              <ul className="mt-6 list-disc marker:text-accent pl-5 space-y-3 text-[17px] text-slate-700 max-w-2xl leading-relaxed">
                 <li>
                   <span className="font-bold text-ink">Solidaridad.</span> Apoyo y cercanía con cada usuario y su familia.
                 </li>
@@ -390,10 +375,10 @@ export default function Home() {
 
         <section
           id="derechos"
-          className="relative bg-paper text-ink scroll-mt-32 border-t border-slate-200"
+          className="relative bg-white text-ink scroll-mt-32 border-t border-slate-200"
         >
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 md:py-28">
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-life">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-accent">
               DDC IPS SAS · Transporte Asistencial
             </p>
             <h2 className="mt-4 font-display text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] max-w-3xl">
@@ -407,48 +392,55 @@ export default function Home() {
               ¡Su bienestar es nuestra prioridad!
             </p>
 
-            <div className="mt-14 grid lg:grid-cols-2 gap-12 lg:gap-16 lg:items-start">
+            <div className="mt-14 grid lg:grid-cols-[1fr_auto_1fr] gap-10 lg:gap-16">
               {[
                 { titulo: "Derechos", items: derechos },
                 { titulo: "Deberes", items: deberes },
-              ].map((grupo) => (
-                <article
-                  key={grupo.titulo}
-                  className="border-l-[6px] border-life pl-5 md:pl-7"
-                >
-                  <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
-                    {grupo.titulo}
-                  </h3>
-                  <ol className="mt-6 space-y-4">
-                    {grupo.items.map((item, i) => (
-                      <li key={item} className="flex gap-3">
-                        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[13px] font-bold text-white">
-                          {i + 1}
-                        </span>
-                        <span className="text-[15px] leading-relaxed text-slate-600">
-                          {item}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
+              ].map((grupo, i) => (
+                <Fragment key={grupo.titulo}>
+                  {i > 0 && (
+                    <div
+                      aria-hidden="true"
+                      className="flex items-center justify-center"
+                    >
+                      <span className="h-px w-full bg-linear-to-r from-transparent via-accent/40 to-transparent lg:h-full lg:w-px lg:bg-linear-to-b" />
+                    </div>
+                  )}
+                  <article>
+                    <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">
+                      {grupo.titulo}
+                    </h3>
+                    <ol className="mt-6 space-y-4">
+                      {grupo.items.map((item, n) => (
+                        <li key={item} className="flex gap-3">
+                          <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[13px] font-bold text-white">
+                            {n + 1}
+                          </span>
+                          <span className="text-[15px] leading-relaxed text-slate-600">
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </article>
+                </Fragment>
               ))}
             </div>
 
-            <div className="mt-16 rounded-2xl bg-accent-deep text-white p-6 md:p-10">
+            <div className="mt-16 rounded-2xl bg-accent-deep text-white p-6 md:p-10 text-center">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/70">
                 Mensaje institucional
               </p>
-              <p className="mt-3 font-display text-2xl md:text-3xl font-medium leading-snug max-w-2xl">
+              <p className="mt-3 mx-auto font-display text-2xl md:text-3xl font-medium leading-snug max-w-2xl">
                 Trabajamos con compromiso y vocación para cuidar de ti.
               </p>
-              <p className="mt-5 text-lg text-white/85 max-w-2xl">
+              <p className="mt-5 mx-auto text-lg text-white/85 max-w-2xl">
                 ¡Gracias por confiar en nosotros! ♡
               </p>
-              <p className="mt-2 text-lg text-white/85 max-w-2xl">
+              <p className="mt-2 mx-auto text-lg text-white/85 max-w-2xl">
                 Su participación es fundamental para seguir mejorando.
               </p>
-              <p className="mt-2 font-display text-xl md:text-2xl font-semibold max-w-2xl">
+              <p className="mt-2 mx-auto font-display text-xl md:text-2xl font-semibold max-w-2xl">
                 ¡Juntos construimos una mejor atención!
               </p>
             </div>
