@@ -27,7 +27,7 @@ export default function Pqrs() {
     const data = Object.fromEntries(new FormData(form));
 
     try {
-      // El servidor asigna el radicado consecutivo (PQRS-2026-0001...).
+      // El servidor asigna el radicado (al azar y único, ej. PQRS-2026-483920).
       const response = await fetch("/api/pqrs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

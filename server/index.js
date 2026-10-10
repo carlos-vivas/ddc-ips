@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { createHash } from "node:crypto";
+import { createHash, randomInt } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, normalize, extname } from "node:path";
@@ -187,10 +187,7 @@ async function initBD() {
     await pool.query(
       "CREATE TABLE IF NOT EXISTS visitas_vistas (huella TEXT PRIMARY KEY, visto_en TIMESTAMPTZ NOT NULL DEFAULT now())",
     );
-    // PQRS: consecutivo por año (PQRS-2026-0001, 0002...) y registro de cada solicitud.
-    await pool.query(
-      "CREATE TABLE IF NOT EXISTS pqrs_consecutivo (anio INT PRIMARY KEY, ultimo INT NOT NULL)",
-    );
+    // PQRS: registro de cada solicitud (el radicado es UNIQUE, nunca se repite).
     await pool.query(
       `CREATE TABLE IF NOT EXISTS pqrs (
         id SERIAL PRIMARY KEY,
@@ -269,9 +266,10 @@ async function registrarVisita(huella) {
 }
 
 // ---------------------------------------------------------------------------
-// PQRS: el radicado lo genera el servidor con un consecutivo en la BD, así
-// nunca se repite. Si la BD está caída se usa uno basado en la hora (con "M"
-// de memoria) para no perder la solicitud.
+// PQRS: el radicado lo genera el servidor con un número al azar de 6 dígitos
+// (PQRS-2026-483920). La columna UNIQUE garantiza que nunca se repita: si sale
+// uno ya usado, se sortea otro. Si la BD está caída se usa uno basado en la
+// hora (con "M" de memoria) para no perder la solicitud.
 // ---------------------------------------------------------------------------
 function texto(valor, max) {
   if (valor === undefined || valor === null) return null;
@@ -284,19 +282,13 @@ async function registrarPqrs(data) {
     return { radicado: `PQRS-${anio}-M${Date.now().toString(36).toUpperCase()}`, id: null };
   }
 
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    const r = await client.query(
-      `INSERT INTO pqrs_consecutivo (anio, ultimo) VALUES ($1, 1)
-       ON CONFLICT (anio) DO UPDATE SET ultimo = pqrs_consecutivo.ultimo + 1
-       RETURNING ultimo`,
-      [anio],
-    );
-    const radicado = `PQRS-${anio}-${String(r.rows[0].ultimo).padStart(4, "0")}`;
-    const ins = await client.query(
+  for (let intento = 0; intento < 10; intento++) {
+    const radicado = `PQRS-${anio}-${randomInt(100_000, 1_000_000)}`;
+    const r = await pool.query(
       `INSERT INTO pqrs (radicado, tipo, nombre, telefono, correo, descripcion)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (radicado) DO NOTHING
+       RETURNING id`,
       [
         radicado,
         texto(data.tipo, 50),
@@ -306,16 +298,9 @@ async function registrarPqrs(data) {
         texto(data.descripcion, 10_000),
       ],
     );
-    await client.query("COMMIT");
-    return { radicado, id: ins.rows[0].id };
-  } catch (err) {
-    try {
-      await client.query("ROLLBACK");
-    } catch {}
-    throw err;
-  } finally {
-    client.release();
+    if (r.rowCount > 0) return { radicado, id: r.rows[0].id };
   }
+  throw new Error("No se pudo generar un radicado único");
 }
 
 function limpiarSid(sid) {
@@ -512,7 +497,7 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // PQRS: genera el radicado consecutivo, guarda la solicitud y envía el correo.
+  // PQRS: genera el radicado al azar (único), guarda la solicitud y envía el correo.
   if (req.method === "POST" && ruta === "/api/pqrs") {
     if (excedeLimite(`c:${ip}`, 8, 10 * 60_000)) {
       return send(res, 429, { ok: false, error: "Has enviado muchos formularios, intenta más tarde" });
