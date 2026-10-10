@@ -72,6 +72,12 @@ setInterval(() => {
 }, 5 * 60 * 1000).unref();
 
 function ipDe(req) {
+  // Detrás de Cloudflare la IP real viene en CF-Connecting-IP (X-Forwarded-For
+  // trae IPs internas de Cloudflare por los saltos intermedios).
+  const cf = req.headers["cf-connecting-ip"];
+  if (typeof cf === "string" && cf.length > 0) {
+    return cf.trim().slice(0, 64);
+  }
   const fwd = req.headers["x-forwarded-for"];
   if (typeof fwd === "string" && fwd.length > 0) {
     return fwd.split(",")[0].trim().slice(0, 64);
