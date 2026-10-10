@@ -25,22 +25,19 @@ export default function Pqrs() {
 
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form));
-    const numero = `PQRS-${new Date().getFullYear()}-${Math.floor(
-      1000 + Math.random() * 9000,
-    )}`;
 
     try {
-      const response = await fetch("/api/contacto", {
+      // El servidor asigna el radicado consecutivo (PQRS-2026-0001...).
+      const response = await fetch("/api/pqrs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          asunto: `${numero} - ${data.tipo}`,
-          radicado: numero,
-          ...data,
-        }),
+        body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("No se pudo enviar la solicitud");
-      setRadicado(numero);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.radicado) {
+        throw new Error("No se pudo enviar la solicitud");
+      }
+      setRadicado(result.radicado);
       form.reset();
       window.scrollTo(0, 0);
     } catch {

@@ -70,6 +70,9 @@ const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const MAIL_FROM = process.env.MAIL_FROM || "no-reply@ddcips.com";
 const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "DDC IPS";
 const MAIL_TO = process.env.MAIL_TO || "recursoshumanos.ddcipssas@gmail.com";
+// Destino por módulo: PQRS a atención al usuario, hojas de vida a recursos humanos.
+const MAIL_PQRS = process.env.MAIL_Pqrs || MAIL_TO;
+const MAIL_TRABAJA = process.env.MAIL_TRABAJACONSOS || MAIL_TO;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
 const DATABASE_URL = process.env.DB || process.env.DATABASE_URL || "";
 
@@ -184,6 +187,23 @@ async function initBD() {
     await pool.query(
       "CREATE TABLE IF NOT EXISTS visitas_vistas (huella TEXT PRIMARY KEY, visto_en TIMESTAMPTZ NOT NULL DEFAULT now())",
     );
+    // PQRS: consecutivo por año (PQRS-2026-0001, 0002...) y registro de cada solicitud.
+    await pool.query(
+      "CREATE TABLE IF NOT EXISTS pqrs_consecutivo (anio INT PRIMARY KEY, ultimo INT NOT NULL)",
+    );
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS pqrs (
+        id SERIAL PRIMARY KEY,
+        radicado TEXT NOT NULL UNIQUE,
+        tipo TEXT,
+        nombre TEXT,
+        telefono TEXT,
+        correo TEXT,
+        descripcion TEXT,
+        correo_enviado BOOLEAN NOT NULL DEFAULT false,
+        creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
+      )`,
+    );
     bdLista = true;
     console.log("Contador de visitas: BD conectada");
   } catch (err) {
@@ -238,6 +258,56 @@ async function registrarVisita(huella) {
         .catch(() => {});
     }
     return { total: Number(r.rows[0]?.total ?? 0), contada: true };
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {}
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PQRS: el radicado lo genera el servidor con un consecutivo en la BD, así
+// nunca se repite. Si la BD está caída se usa uno basado en la hora (con "M"
+// de memoria) para no perder la solicitud.
+// ---------------------------------------------------------------------------
+function texto(valor, max) {
+  if (valor === undefined || valor === null) return null;
+  return String(valor).slice(0, max);
+}
+
+async function registrarPqrs(data) {
+  const anio = new Date().getFullYear();
+  if (!pool || !bdLista) {
+    return { radicado: `PQRS-${anio}-M${Date.now().toString(36).toUpperCase()}`, id: null };
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const r = await client.query(
+      `INSERT INTO pqrs_consecutivo (anio, ultimo) VALUES ($1, 1)
+       ON CONFLICT (anio) DO UPDATE SET ultimo = pqrs_consecutivo.ultimo + 1
+       RETURNING ultimo`,
+      [anio],
+    );
+    const radicado = `PQRS-${anio}-${String(r.rows[0].ultimo).padStart(4, "0")}`;
+    const ins = await client.query(
+      `INSERT INTO pqrs (radicado, tipo, nombre, telefono, correo, descripcion)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [
+        radicado,
+        texto(data.tipo, 50),
+        texto(data.nombre, 200),
+        texto(data.telefono, 50),
+        texto(data.correo, 200),
+        texto(data.descripcion, 10_000),
+      ],
+    );
+    await client.query("COMMIT");
+    return { radicado, id: ins.rows[0].id };
   } catch (err) {
     try {
       await client.query("ROLLBACK");
@@ -314,7 +384,7 @@ function rowsToHtml(data) {
     .join("");
 }
 
-async function sendWithBrevo(data) {
+async function sendWithBrevo(data, destino) {
   const subject = data.asunto || data.subject || "Nuevo formulario web";
   const radicado = data.radicado || data.id;
   const archivoNombre = data.archivoNombre;
@@ -364,7 +434,7 @@ async function sendWithBrevo(data) {
 
   const payload = {
     sender: { email: MAIL_FROM, name: MAIL_FROM_NAME },
-    to: [{ email: MAIL_TO }],
+    to: [{ email: destino }],
     replyTo: data.correo || data.email ? { email: data.correo || data.email } : undefined,
     subject,
     htmlContent: html,
@@ -442,6 +512,39 @@ const server = createServer(async (req, res) => {
     }
   }
 
+  // PQRS: genera el radicado consecutivo, guarda la solicitud y envía el correo.
+  if (req.method === "POST" && ruta === "/api/pqrs") {
+    if (excedeLimite(`c:${ip}`, 8, 10 * 60_000)) {
+      return send(res, 429, { ok: false, error: "Has enviado muchos formularios, intenta más tarde" });
+    }
+    if (!BREVO_API_KEY) {
+      return send(res, 500, { ok: false, error: "Falta BREVO_API_KEY" });
+    }
+    let registro;
+    try {
+      const raw = await readBody(req, 100_000);
+      const data = JSON.parse(raw || "{}");
+      // El radicado lo decide el servidor, nunca el navegador.
+      delete data.radicado;
+      delete data.asunto;
+      registro = await registrarPqrs(data);
+      await sendWithBrevo({
+        ...data,
+        asunto: `${registro.radicado} - ${data.tipo || "PQRS"}`,
+        radicado: registro.radicado,
+      }, MAIL_PQRS);
+      if (registro.id) {
+        pool
+          .query("UPDATE pqrs SET correo_enviado = true WHERE id = $1", [registro.id])
+          .catch((err) => console.error("No se pudo marcar PQRS enviada:", err.message));
+      }
+      return send(res, 200, { ok: true, radicado: registro.radicado });
+    } catch (error) {
+      console.error("Error en PQRS:", registro?.radicado || "(sin radicado)", error.message);
+      return send(res, 500, { ok: false, error: error.message });
+    }
+  }
+
   if (req.method !== "POST" || ruta !== "/api/contacto") {
     // Frontend compilado (mismo puerto = adiós 405 y adiós CORS en prod).
     if ((req.method === "GET" || req.method === "HEAD") && HAY_DIST) {
@@ -483,7 +586,7 @@ const server = createServer(async (req, res) => {
       data.archivoBase64 = base64;
     }
 
-    const result = await sendWithBrevo(data);
+    const result = await sendWithBrevo(data, MAIL_TRABAJA);
     return send(res, 200, { ok: true, messageId: result.messageId });
   } catch (error) {
     console.error("Error al enviar:", error.message);
