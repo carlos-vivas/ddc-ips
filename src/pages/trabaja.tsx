@@ -3,24 +3,18 @@ import type { DragEvent } from "react";
 import type { FormEvent } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import Turnstile from "../components/turnstile";
+import { CARGOS, TIPOS_ARCHIVO, esquemaTrabaja, erroresPorCampo, errorDeCampo } from "../lib/formularios.js";
 
-const cargos = [
-  "Conductores",
-  "Auxiliares de enfermería",
-  "Técnico APH",
-  "Médico",
-  "Otro",
-];
+function ErrorCampo({ mensaje }: { mensaje?: string }) {
+  if (!mensaje) return null;
+  return <p className="mt-1 text-xs font-medium text-red-600">{mensaje}</p>;
+}
 
 const inputClass =
   "w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
 
 const MAX_MB = 5;
-const TIPOS_PERMITIDOS = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
 function formatearTamano(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -33,7 +27,7 @@ function validarArchivo(archivo: File) {
     throw new Error(`La hoja de vida supera los ${MAX_MB} MB permitidos.`);
   }
   const ext = archivo.name.split(".").pop()?.toLowerCase();
-  const tipoOk = !archivo.type || TIPOS_PERMITIDOS.includes(archivo.type);
+  const tipoOk = !archivo.type || TIPOS_ARCHIVO.includes(archivo.type);
   const extOk = ext && ["pdf", "doc", "docx"].includes(ext);
   if (!tipoOk && !extOk) {
     throw new Error("Formato no permitido. Sube tu hoja de vida en PDF, DOC o DOCX.");
@@ -58,6 +52,19 @@ export default function Trabaja() {
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errores, setErrores] = useState<Record<string, string>>({});
+  // Token de Cloudflare Turnstile; `intento` vuelve a montar el widget para pedir otro.
+  const [token, setToken] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
+
+  // Avisa apenas el usuario sale de un campo; si ya tenía error, lo quita al corregir.
+  function revisarCampo(event: { target: EventTarget }, soloSiHayError = false) {
+    const campo = event.target as HTMLInputElement;
+    if (!campo.name || campo.type === "file" || campo.type === "checkbox") return;
+    if (soloSiHayError && !errores[campo.name]) return;
+    const mensaje = errorDeCampo(esquemaTrabaja, campo.name, campo.value);
+    setErrores((prev) => ({ ...prev, [campo.name]: mensaje }));
+  }
   const [archivo, setArchivo] = useState<File | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const inputArchivoRef = useRef<HTMLInputElement>(null);
@@ -95,6 +102,10 @@ export default function Trabaja() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    if (!token) {
+      setError("Completa la verificación de seguridad (la casilla de Cloudflare).");
+      return;
+    }
     setEnviando(true);
 
     try {
@@ -106,27 +117,31 @@ export default function Trabaja() {
       }
       validarArchivo(archivo);
 
-      const archivoBase64 = await archivoABase64(archivo);
-      const nombre = String(formData.get("nombre") || "");
-      const cargo = String(formData.get("cargo") || "");
+      const validado = esquemaTrabaja.safeParse({
+        nombre: formData.get("nombre"),
+        telefono: formData.get("telefono"),
+        correo: formData.get("correo"),
+        cargo: formData.get("cargo"),
+        mensaje: formData.get("mensaje") ?? "",
+        archivoNombre: archivo.name,
+        archivoTipo: archivo.type,
+        archivoBase64: await archivoABase64(archivo),
+      });
+      if (!validado.success) {
+        const campos = erroresPorCampo(validado.error);
+        setErrores(campos);
+        throw new Error(campos.archivoNombre || campos.archivoBase64 || "Revisa los campos marcados.");
+      }
+      setErrores({});
 
       const response = await fetch("/api/contacto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          asunto: `Hoja de vida - ${cargo} - ${nombre}`,
-          nombre,
-          telefono: String(formData.get("telefono") || ""),
-          correo: String(formData.get("correo") || ""),
-          cargo,
-          mensaje: String(formData.get("mensaje") || ""),
-          archivoNombre: archivo.name,
-          archivoTipo: archivo.type,
-          archivoBase64,
-        }),
+        body: JSON.stringify({ ...validado.data, "cf-turnstile-response": token }),
       });
 
       const result = await response.json().catch(() => ({}));
+      if (response.status === 400 && result.campos) setErrores(result.campos);
       if (!response.ok) throw new Error(result.error || "No se pudo enviar tu hoja de vida");
       setEnviado(true);
       form.reset();
@@ -140,6 +155,9 @@ export default function Trabaja() {
       );
     } finally {
       setEnviando(false);
+      // El token ya se gastó: pedimos uno nuevo para el próximo envío.
+      setToken(null);
+      setIntento((n) => n + 1);
     }
   }
 
@@ -205,6 +223,8 @@ export default function Trabaja() {
             ) : (
               <form
                 onSubmit={handleSubmit}
+                onBlur={(e) => revisarCampo(e)}
+                onChange={(e) => revisarCampo(e, true)}
                 className="mt-6 w-full rounded-2xl bg-white/70 p-5 md:p-6 ring-1 ring-[#e4dccf]"
               >
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -215,11 +235,12 @@ export default function Trabaja() {
                     <input
                       required
                       type="text"
-                      name="nombre"
+                      name="nombre" maxLength={80}
                       autoComplete="name"
                       placeholder="Nombres y apellidos"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.nombre} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -229,11 +250,12 @@ export default function Trabaja() {
                     <input
                       required
                       type="tel"
-                      name="telefono"
+                      name="telefono" inputMode="tel" maxLength={20}
                       autoComplete="tel"
-                      placeholder="300 000 0000"
+                      placeholder="Celular, ej. 300 123 4567"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.telefono} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -243,11 +265,12 @@ export default function Trabaja() {
                     <input
                       required
                       type="email"
-                      name="correo"
+                      name="correo" maxLength={120}
                       autoComplete="email"
                       placeholder="correo@ejemplo.com"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.correo} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -258,12 +281,13 @@ export default function Trabaja() {
                       <option value="" disabled>
                         Selecciona…
                       </option>
-                      {cargos.map((c) => (
+                      {CARGOS.map((c) => (
                         <option key={c} value={c}>
                           {c}
                         </option>
                       ))}
                     </select>
+                    <ErrorCampo mensaje={errores.cargo} />
                   </label>
 
                   <div className="block sm:col-span-2">
@@ -398,11 +422,12 @@ export default function Trabaja() {
                       Mensaje o presentación (opcional)
                     </span>
                     <textarea
-                      name="mensaje"
+                      name="mensaje" maxLength={2000}
                       rows={3}
                       placeholder="Cuéntanos brevemente tu experiencia, disponibilidad…"
                       className={`${inputClass} resize-none`}
                     />
+                    <ErrorCampo mensaje={errores.mensaje} />
                   </label>
 
                   <label className="flex items-start gap-3 sm:col-span-2">
@@ -417,6 +442,8 @@ export default function Trabaja() {
                     </span>
                   </label>
                 </div>
+
+                <Turnstile key={intento} accion="trabaja" onToken={setToken} />
 
                 {error && (
                   <p

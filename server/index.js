@@ -4,6 +4,7 @@ import { readFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, normalize, extname } from "node:path";
 import { Pool } from "pg";
+import { esquemaPqrs, esquemaTrabaja, erroresPorCampo } from "../src/lib/formularios.js";
 
 // Carpeta del frontend compilado (vite build). Si no existe (dev local),
 // el servidor solo responde la API y Vite sirve la página.
@@ -74,6 +75,12 @@ const MAIL_TO = process.env.MAIL_TO || "recursoshumanos.ddcipssas@gmail.com";
 const MAIL_PQRS = process.env.MAIL_Pqrs || MAIL_TO;
 const MAIL_TRABAJA = process.env.MAIL_TRABAJACONSOS || MAIL_TO;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
+// Cloudflare Turnstile (anti-bots en los formularios).
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET;
+const TURNSTILE_HOSTNAMES = (process.env.TURNSTILE_HOSTNAMES || "ddc-ips.com,www.ddc-ips.com")
+  .split(",")
+  .map((h) => h.trim().toLowerCase())
+  .filter(Boolean);
 const DATABASE_URL = process.env.DB || process.env.DATABASE_URL || "";
 
 const CORS = {
@@ -303,6 +310,69 @@ async function registrarPqrs(data) {
   throw new Error("No se pudo generar un radicado único");
 }
 
+// ---------------------------------------------------------------------------
+// Turnstile: el navegador manda un token de un solo uso y aquí se confirma con
+// Cloudflare que lo resolvió una persona, en esta página y en este formulario.
+// Si algo falla (sin token, red caída, token reusado) se rechaza con 403.
+// ---------------------------------------------------------------------------
+async function verificarHumano(raw, ip, accion, res) {
+  if (!TURNSTILE_SECRET) {
+    console.error("Falta TURNSTILE_SECRET: formulario bloqueado");
+    send(res, 503, { ok: false, error: "Verificación anti-bots no configurada" });
+    return false;
+  }
+  let token;
+  try {
+    token = JSON.parse(raw || "{}")["cf-turnstile-response"];
+  } catch {
+    token = undefined;
+  }
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
+    send(res, 403, { ok: false, error: "Completa la verificación de seguridad" });
+    return false;
+  }
+  try {
+    const body = new URLSearchParams({ secret: TURNSTILE_SECRET, response: token });
+    if (ip && ip !== "desconocida") body.set("remoteip", ip);
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body,
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) throw new Error(`siteverify respondió ${r.status}`);
+    const v = await r.json();
+    // Con la clave de pruebas de Cloudflare (solo desarrollo local) no hay
+    // hostname ni action reales que comparar.
+    const esPrueba = TURNSTILE_SECRET === "1x0000000000000000000000000000000AA";
+    const hostOk = esPrueba || TURNSTILE_HOSTNAMES.includes(String(v.hostname || "").toLowerCase());
+    const accionOk = esPrueba || v.action === accion;
+    if (v.success === true && accionOk && hostOk) return true;
+    console.warn("Turnstile rechazado:", accion, v["error-codes"] || [], v.action, v.hostname);
+  } catch (err) {
+    console.error("Turnstile no disponible:", err.message);
+  }
+  send(res, 403, { ok: false, error: "No pudimos verificar que eres una persona. Intenta de nuevo." });
+  return false;
+}
+
+// Valida con zod. Devuelve los datos limpios o responde 400 con el error.
+function validar(esquema, raw, res) {
+  let entrada;
+  try {
+    entrada = JSON.parse(raw || "{}");
+  } catch {
+    send(res, 400, { ok: false, error: "Datos inválidos" });
+    return null;
+  }
+  const r = esquema.safeParse(entrada);
+  if (!r.success) {
+    const campos = erroresPorCampo(r.error);
+    send(res, 400, { ok: false, error: Object.values(campos)[0], campos });
+    return null;
+  }
+  return r.data;
+}
+
 function limpiarSid(sid) {
   if (typeof sid !== "string") return "sin-sid";
   const limpio = sid.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 64);
@@ -508,14 +578,14 @@ const server = createServer(async (req, res) => {
     let registro;
     try {
       const raw = await readBody(req, 100_000);
-      const data = JSON.parse(raw || "{}");
-      // El radicado lo decide el servidor, nunca el navegador.
-      delete data.radicado;
-      delete data.asunto;
+      // zod descarta campos extra (radicado, asunto...): los decide el servidor.
+      if (!(await verificarHumano(raw, ip, "pqrs", res))) return;
+      const data = validar(esquemaPqrs, raw, res);
+      if (!data) return;
       registro = await registrarPqrs(data);
       await sendWithBrevo({
         ...data,
-        asunto: `${registro.radicado} - ${data.tipo || "PQRS"}`,
+        asunto: `${registro.radicado} - ${data.tipo}`,
         radicado: registro.radicado,
       }, MAIL_PQRS);
       if (registro.id) {
@@ -549,27 +619,14 @@ const server = createServer(async (req, res) => {
 
   try {
     const raw = await readBody(req);
-    const data = JSON.parse(raw || "{}");
-
-    // Validación del adjunto (hoja de vida)
-    if (data.archivoBase64) {
-      const base64 = String(data.archivoBase64).includes(",")
-        ? String(data.archivoBase64).split(",").pop()
-        : String(data.archivoBase64);
-      // ~5 MB en binario ≈ 6.8 MB en base64
-      if (base64.length > 7_000_000) {
-        return send(res, 413, { ok: false, error: "La hoja de vida supera los 5 MB permitidos" });
-      }
-      const permitidos = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-      if (data.archivoTipo && !permitidos.includes(data.archivoTipo)) {
-        return send(res, 400, { ok: false, error: "Formato no permitido. Sube PDF, DOC o DOCX" });
-      }
-      data.archivoBase64 = base64;
+    if (!(await verificarHumano(raw, ip, "trabaja", res))) return;
+    const data = validar(esquemaTrabaja, raw, res);
+    if (!data) return;
+    // Por si llega con el prefijo "data:...;base64,"
+    if (data.archivoBase64.includes(",")) {
+      data.archivoBase64 = data.archivoBase64.split(",").pop();
     }
+    data.asunto = `Hoja de vida - ${data.cargo} - ${data.nombre}`;
 
     const result = await sendWithBrevo(data, MAIL_TRABAJA);
     return send(res, 200, { ok: true, messageId: result.messageId });

@@ -2,8 +2,13 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import Turnstile from "../components/turnstile";
+import { esquemaPqrs, erroresPorCampo, errorDeCampo, TIPOS_SOLICITUD } from "../lib/formularios.js";
 
-const tiposSolicitud = ["Petición", "Queja", "Reclamo", "Sugerencia"];
+function ErrorCampo({ mensaje }: { mensaje?: string }) {
+  if (!mensaje) return null;
+  return <p className="mt-1 text-xs font-medium text-red-600">{mensaje}</p>;
+}
 
 const inputClass =
   "w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
@@ -12,6 +17,19 @@ export default function Pqrs() {
   const [radicado, setRadicado] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errores, setErrores] = useState<Record<string, string>>({});
+  // Token de Cloudflare Turnstile; `intento` vuelve a montar el widget para pedir otro.
+  const [token, setToken] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
+
+  // Avisa apenas el usuario sale de un campo; si ya tenía error, lo quita al corregir.
+  function revisarCampo(event: { target: EventTarget }, soloSiHayError = false) {
+    const campo = event.target as HTMLInputElement;
+    if (!campo.name || campo.type === "file" || campo.type === "checkbox") return;
+    if (soloSiHayError && !errores[campo.name]) return;
+    const mensaje = errorDeCampo(esquemaPqrs, campo.name, campo.value);
+    setErrores((prev) => ({ ...prev, [campo.name]: mensaje }));
+  }
 
   useEffect(() => {
     document.title = "PQRS · DDC IPS";
@@ -21,19 +39,34 @@ export default function Pqrs() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setEnviando(true);
 
     const form = event.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
+    const validado = esquemaPqrs.safeParse(Object.fromEntries(new FormData(form)));
+    if (!validado.success) {
+      setErrores(erroresPorCampo(validado.error));
+      setError("Revisa los campos marcados.");
+      return;
+    }
+    setErrores({});
+    if (!token) {
+      setError("Completa la verificación de seguridad (la casilla de Cloudflare).");
+      return;
+    }
+    setEnviando(true);
 
     try {
       // El servidor asigna el radicado (al azar y único, ej. PQRS-2026-483920).
       const response = await fetch("/api/pqrs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...validado.data, "cf-turnstile-response": token }),
       });
       const result = await response.json().catch(() => ({}));
+      if (response.status === 400 && result.campos) {
+        setErrores(result.campos);
+        setError("Revisa los campos marcados.");
+        return;
+      }
       if (!response.ok || !result.radicado) {
         throw new Error("No se pudo enviar la solicitud");
       }
@@ -46,6 +79,9 @@ export default function Pqrs() {
       );
     } finally {
       setEnviando(false);
+      // El token ya se gastó: pedimos uno nuevo para el próximo envío.
+      setToken(null);
+      setIntento((n) => n + 1);
     }
   }
 
@@ -113,6 +149,8 @@ export default function Pqrs() {
             ) : (
               <form
                 onSubmit={handleSubmit}
+                onBlur={(e) => revisarCampo(e)}
+                onChange={(e) => revisarCampo(e, true)}
                 className="mt-6 w-full rounded-2xl bg-white/70 p-5 md:p-6 ring-1 ring-[#e4dccf]"
               >
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -124,12 +162,13 @@ export default function Pqrs() {
                       <option value="" disabled>
                         Selecciona…
                       </option>
-                      {tiposSolicitud.map((t) => (
+                      {TIPOS_SOLICITUD.map((t) => (
                         <option key={t} value={t}>
                           {t}
                         </option>
                       ))}
                     </select>
+                    <ErrorCampo mensaje={errores.tipo} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -141,9 +180,11 @@ export default function Pqrs() {
                       type="text"
                       name="nombre"
                       autoComplete="name"
+                      maxLength={80}
                       placeholder="Nombres y apellidos"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.nombre} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -155,9 +196,12 @@ export default function Pqrs() {
                       type="tel"
                       name="telefono"
                       autoComplete="tel"
-                      placeholder="300 000 0000"
+                      inputMode="tel"
+                      maxLength={20}
+                      placeholder="Celular, ej. 300 123 4567"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.telefono} />
                   </label>
 
                   <label className="block sm:col-span-1">
@@ -169,9 +213,11 @@ export default function Pqrs() {
                       type="email"
                       name="correo"
                       autoComplete="email"
+                      maxLength={120}
                       placeholder="correo@ejemplo.com"
                       className={inputClass}
                     />
+                    <ErrorCampo mensaje={errores.correo} />
                   </label>
 
                   <label className="block sm:col-span-2">
@@ -182,9 +228,11 @@ export default function Pqrs() {
                       required
                       name="descripcion"
                       rows={3}
+                      maxLength={3000}
                       placeholder="Describe los hechos, fecha y lugar relacionados con tu solicitud…"
                       className={`${inputClass} resize-none`}
                     />
+                    <ErrorCampo mensaje={errores.descripcion} />
                   </label>
 
                   <label className="flex items-start gap-3 sm:col-span-2">
@@ -199,6 +247,8 @@ export default function Pqrs() {
                     </span>
                   </label>
                 </div>
+
+                <Turnstile key={intento} accion="pqrs" onToken={setToken} />
 
                 {error && (
                   <p
