@@ -269,7 +269,7 @@ const ETIQUETAS = {
   archivonombre: "Hoja de vida adjunta",
 };
 
-const CAMPOS_OCULTOS = new Set([
+const CAMPOS_OCULTOS = new Set([ 
   "asunto",
   "subject",
   "radicado",
