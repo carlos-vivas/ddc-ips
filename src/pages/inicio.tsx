@@ -77,15 +77,50 @@ export default function Home() {
   const [visitasView, setVisitasView] = useState(0);
 
   useEffect(() => {
-    try {
-      const key = "ddc-ips-visitas";
-      const actual = Number(window.localStorage.getItem(key) ?? "0") || 0;
-      const siguiente = actual + 1;
-      window.localStorage.setItem(key, String(siguiente));
-      setVisitas(siguiente);
-    } catch {
-      setVisitas(null);
+    let cancelado = false;
+
+    async function contar() {
+      // Identificador anónimo por navegador: permite contar 1 visita/día por
+      // persona aunque varias compartan la misma IP (la deduplicación real
+      // la hace el servidor con IP + este sid).
+      let sid: string | null = null;
+      try {
+        sid = window.localStorage.getItem("ddc-ips-sid");
+        if (!sid) {
+          sid = window.crypto.randomUUID();
+          window.localStorage.setItem("ddc-ips-sid", sid);
+        }
+      } catch {
+        sid = null;
+      }
+
+      try {
+        const response = await fetch("/api/visitas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sid }),
+        });
+        const datos = await response.json().catch(() => ({}));
+        if (!cancelado && typeof datos.total === "number") {
+          setVisitas(datos.total);
+          return;
+        }
+        throw new Error("sin total");
+      } catch {
+        // Sin servidor (o BD caída): último valor visto, sin romper la página.
+        try {
+          const ultimo = Number(window.localStorage.getItem("ddc-ips-visitas") ?? "0") || 0;
+          if (!cancelado) setVisitas(ultimo || null);
+        } catch {
+          if (!cancelado) setVisitas(null);
+        }
+      }
     }
+
+    contar();
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
   useEffect(() => {
