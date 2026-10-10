@@ -68,6 +68,11 @@ html,
 body {
   background-color: #fff;
   color: var(--color-ink);
+  overflow-x: clip;
+}
+
+#root {
+  overflow-x: clip;
 }
 
 body {

@@ -12,7 +12,7 @@ function ErrorCampo({ mensaje }: { mensaje?: string }) {
 }
 
 const inputClass =
-  "w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
+  "w-full min-w-0 max-w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
 
 const MAX_MB = 5;
 
@@ -165,9 +165,9 @@ export default function Trabaja() {
     <>
       <Navbar />
 
-      <main className="bg-white text-ink">
-        <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
-          <figure className="relative min-h-[36vh] overflow-hidden bg-[#1a1214] lg:sticky lg:top-[7.5rem] lg:h-[calc(100svh-7.5rem)] lg:self-start">
+      <main className="overflow-x-clip bg-white text-ink">
+        <section className="grid min-w-0 overflow-x-clip lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
+          <figure className="relative min-h-[36vh] min-w-0 overflow-hidden bg-[#1a1214] lg:sticky lg:top-[7.5rem] lg:h-[calc(100svh-7.5rem)] lg:self-start">
             <img
               src="/trabaja_nosotros.jpeg"
               alt="Equipo de ambulancia junto a un vehículo de traslado asistencial"
@@ -187,7 +187,7 @@ export default function Trabaja() {
             </figcaption>
           </figure>
 
-          <div className="relative flex flex-col justify-center px-6 py-8 md:px-10 lg:px-12 paper-grain bg-paper">
+          <div className="relative flex min-w-0 max-w-full flex-col justify-center overflow-x-clip px-4 py-8 sm:px-6 md:px-10 lg:px-12 paper-grain bg-paper">
             <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-[1.08]">
               Trabaja con nosotros
             </h1>
@@ -225,10 +225,10 @@ export default function Trabaja() {
                 onSubmit={handleSubmit}
                 onBlur={(e) => revisarCampo(e)}
                 onChange={(e) => revisarCampo(e, true)}
-                className="mt-6 w-full rounded-2xl bg-white/70 p-5 md:p-6 ring-1 ring-[#e4dccf]"
+                className="mt-6 w-full min-w-0 max-w-full rounded-2xl bg-white/70 p-4 sm:p-5 md:p-6 ring-1 ring-[#e4dccf]"
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Nombre completo <span className="text-red-600">*</span>
                     </span>
@@ -243,7 +243,7 @@ export default function Trabaja() {
                     <ErrorCampo mensaje={errores.nombre} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Teléfono <span className="text-red-600">*</span>
                     </span>
@@ -258,7 +258,7 @@ export default function Trabaja() {
                     <ErrorCampo mensaje={errores.telefono} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Correo electrónico <span className="text-red-600">*</span>
                     </span>
@@ -273,7 +273,7 @@ export default function Trabaja() {
                     <ErrorCampo mensaje={errores.correo} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Cargo al que aplicas <span className="text-red-600">*</span>
                     </span>
@@ -290,7 +290,7 @@ export default function Trabaja() {
                     <ErrorCampo mensaje={errores.cargo} />
                   </label>
 
-                  <div className="block sm:col-span-2">
+                  <div className="block min-w-0 sm:col-span-2">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Hoja de vida (PDF, DOC o DOCX, máx. 5 MB){" "}
                       <span className="text-red-600">*</span>
@@ -312,7 +312,7 @@ export default function Trabaja() {
                       }}
                       onDragLeave={() => setArrastrando(false)}
                       onDrop={handleDrop}
-                      className={`group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                      className={`group flex w-full min-w-0 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed px-4 sm:px-6 py-8 text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                         arrastrando
                           ? "border-accent bg-accent/10 scale-[1.01] shadow-lg"
                           : archivo
@@ -384,13 +384,13 @@ export default function Trabaja() {
                               <path d="m9 15 2 2 4-4" />
                             </svg>
                           </span>
-                          <span className="mt-4 max-w-full truncate px-2 text-[15px] font-bold text-ink">
+                          <span className="mt-4 w-full min-w-0 max-w-full truncate px-2 text-[15px] font-bold text-ink">
                             📎 {archivo.name}
                           </span>
                           <span className="mt-1 text-sm text-slate-600">
                             {formatearTamano(archivo.size)} · listo para enviar
                           </span>
-                          <span className="mt-3 inline-flex items-center gap-2">
+                          <span className="mt-3 inline-flex max-w-full flex-wrap items-center justify-center gap-2">
                             <span className="rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-white group-hover:bg-accent">
                               Cambiar archivo
                             </span>
@@ -417,7 +417,7 @@ export default function Trabaja() {
                     </div>
                   </div>
 
-                  <label className="block sm:col-span-2">
+                  <label className="block min-w-0 sm:col-span-2">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Mensaje o presentación (opcional)
                     </span>
@@ -430,7 +430,7 @@ export default function Trabaja() {
                     <ErrorCampo mensaje={errores.mensaje} />
                   </label>
 
-                  <label className="flex items-start gap-3 sm:col-span-2">
+                  <label className="flex min-w-0 items-start gap-3 sm:col-span-2">
                     <input
                       required
                       type="checkbox"
@@ -463,16 +463,6 @@ export default function Trabaja() {
                 </button>
               </form>
             )}
-
-            <p className="mt-6 text-sm text-muted">
-              ¿Prefieres el correo? Envíanos tu hoja de vida a:{" "}
-              <a
-                href="mailto:recursoshumanos.ddcipssas@gmail.com"
-                className="font-semibold text-ink break-all underline underline-offset-4 decoration-accent/40 hover:text-accent hover:decoration-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
-              >
-                recursoshumanos.ddcipssas@gmail.com
-              </a>
-            </p>
           </div>
         </section>
       </main>

@@ -11,7 +11,7 @@ function ErrorCampo({ mensaje }: { mensaje?: string }) {
 }
 
 const inputClass =
-  "w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
+  "w-full min-w-0 max-w-full rounded-xl bg-white px-4 py-2.5 text-[15px] text-ink ring-1 ring-[#e4dccf] placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent";
 
 export default function Pqrs() {
   const [radicado, setRadicado] = useState<string | null>(null);
@@ -89,9 +89,9 @@ export default function Pqrs() {
     <>
       <Navbar />
 
-      <main className="bg-white text-ink">
-        <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
-          <figure className="relative min-h-[36vh] overflow-hidden bg-[#1a1214] lg:sticky lg:top-[7.5rem] lg:h-[calc(100svh-7.5rem)] lg:self-start">
+      <main className="overflow-x-clip bg-white text-ink">
+        <section className="grid min-w-0 overflow-x-clip lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
+          <figure className="relative min-h-[36vh] min-w-0 overflow-hidden bg-[#1a1214] lg:sticky lg:top-[7.5rem] lg:h-[calc(100svh-7.5rem)] lg:self-start">
             <img
               src="/pqrs.jpeg"
               alt="Atención al usuario en la institución"
@@ -111,7 +111,7 @@ export default function Pqrs() {
             </figcaption>
           </figure>
 
-          <div className="relative flex flex-col justify-center px-6 py-8 md:px-10 lg:px-12 paper-grain bg-paper">
+          <div className="relative flex min-w-0 max-w-full flex-col justify-center overflow-x-clip px-4 py-8 sm:px-6 md:px-10 lg:px-12 paper-grain bg-paper">
             <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight leading-[1.08]">
               PQRS
             </h1>
@@ -151,10 +151,10 @@ export default function Pqrs() {
                 onSubmit={handleSubmit}
                 onBlur={(e) => revisarCampo(e)}
                 onChange={(e) => revisarCampo(e, true)}
-                className="mt-6 w-full rounded-2xl bg-white/70 p-5 md:p-6 ring-1 ring-[#e4dccf]"
+                className="mt-6 w-full min-w-0 max-w-full rounded-2xl bg-white/70 p-4 sm:p-5 md:p-6 ring-1 ring-[#e4dccf]"
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Tipo de solicitud <span className="text-red-600">*</span>
                     </span>
@@ -171,7 +171,7 @@ export default function Pqrs() {
                     <ErrorCampo mensaje={errores.tipo} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Nombre completo <span className="text-red-600">*</span>
                     </span>
@@ -187,7 +187,7 @@ export default function Pqrs() {
                     <ErrorCampo mensaje={errores.nombre} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Teléfono <span className="text-red-600">*</span>
                     </span>
@@ -204,7 +204,7 @@ export default function Pqrs() {
                     <ErrorCampo mensaje={errores.telefono} />
                   </label>
 
-                  <label className="block sm:col-span-1">
+                  <label className="block min-w-0 sm:col-span-1">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Correo electrónico <span className="text-red-600">*</span>
                     </span>
@@ -220,7 +220,7 @@ export default function Pqrs() {
                     <ErrorCampo mensaje={errores.correo} />
                   </label>
 
-                  <label className="block sm:col-span-2">
+                  <label className="block min-w-0 sm:col-span-2">
                     <span className="mb-1.5 block text-sm font-bold text-ink">
                       Descripción de la solicitud <span className="text-red-600">*</span>
                     </span>
@@ -235,7 +235,7 @@ export default function Pqrs() {
                     <ErrorCampo mensaje={errores.descripcion} />
                   </label>
 
-                  <label className="flex items-start gap-3 sm:col-span-2">
+                  <label className="flex min-w-0 items-start gap-3 sm:col-span-2">
                     <input
                       required
                       type="checkbox"

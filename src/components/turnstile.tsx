@@ -64,5 +64,14 @@ export default function Turnstile({
     };
   }, [accion, onToken]);
 
-  return <div ref={ref} className="mt-4 min-h-[65px]" />;
+  // El widget de Cloudflare mide 300px fijos: en móviles muy angostos
+  // (<380px) lo escalamos para que no genere scroll lateral.
+  return (
+    <div className="mt-4 w-full max-w-full overflow-hidden">
+      <div
+        ref={ref}
+        className="min-h-[65px] max-w-full origin-top-left scale-[0.85] min-[380px]:scale-100"
+      />
+    </div>
+  );
 }
