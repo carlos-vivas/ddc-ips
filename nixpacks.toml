@@ -1,0 +1,3 @@
+# Si Dokploy usa Nixpacks en vez del Dockerfile: correr Node (página + API), no Caddy.
+[start]
+cmd = "node server/index.js"
