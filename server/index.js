@@ -74,7 +74,8 @@ const MAIL_TO = process.env.MAIL_TO || "recursoshumanos.ddcipssas@gmail.com";
 // Destino por módulo: PQRS a atención al usuario, hojas de vida a recursos humanos.
 const MAIL_PQRS = process.env.MAIL_Pqrs || MAIL_TO;
 const MAIL_TRABAJA = process.env.MAIL_TRABAJACONSOS || MAIL_TO;
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
+// Solo el dominio propio puede llamar la API desde un navegador.
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "https://ddc-ips.com";
 // Cloudflare Turnstile (anti-bots en los formularios).
 const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET;
 const TURNSTILE_HOSTNAMES = (process.env.TURNSTILE_HOSTNAMES || "ddc-ips.com,www.ddc-ips.com")
@@ -87,6 +88,32 @@ const CORS = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
+};
+
+// Cabeceras de seguridad para todas las respuestas (página y API).
+const CABECERAS_SEGURIDAD = {
+  // Solo HTTPS durante 1 año.
+  "Strict-Transport-Security": "max-age=31536000",
+  // Nadie puede meter la página dentro de un iframe (clickjacking).
+  "X-Frame-Options": "DENY",
+  // El navegador no "adivina" tipos de archivo.
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  // Solo se cargan scripts propios y los de Cloudflare (Turnstile y analytics).
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self' https://cloudflareinsights.com",
+    "frame-src https://challenges.cloudflare.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join("; "),
 };
 
 function send(res, status, body) {
@@ -373,6 +400,20 @@ function validar(esquema, raw, res) {
   return r.data;
 }
 
+// Revisa los primeros bytes del archivo: que de verdad sea PDF o Word y no
+// otra cosa renombrada (.exe -> .pdf).
+const FIRMAS = {
+  pdf: [[0x25, 0x50, 0x44, 0x46, 0x2d]], // %PDF-
+  doc: [[0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]], // Word 97-2003
+  docx: [[0x50, 0x4b, 0x03, 0x04]], // ZIP (Office moderno)
+};
+
+function archivoEsValido(nombre, base64) {
+  const ext = nombre.split(".").pop().toLowerCase();
+  const inicio = Buffer.from(base64.slice(0, 16), "base64");
+  return (FIRMAS[ext] || []).some((firma) => firma.every((b, i) => inicio[i] === b));
+}
+
 function limpiarSid(sid) {
   if (typeof sid !== "string") return "sin-sid";
   const limpio = sid.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 64);
@@ -525,6 +566,10 @@ const server = createServer(async (req, res) => {
     return res.end();
   }
 
+  for (const [nombre, valor] of Object.entries(CABECERAS_SEGURIDAD)) {
+    res.setHeader(nombre, valor);
+  }
+
   const ruta = (req.url || "/").split("?")[0];
   const ip = ipDe(req);
 
@@ -596,7 +641,7 @@ const server = createServer(async (req, res) => {
       return send(res, 200, { ok: true, radicado: registro.radicado });
     } catch (error) {
       console.error("Error en PQRS:", registro?.radicado || "(sin radicado)", error.message);
-      return send(res, 500, { ok: false, error: error.message });
+      return send(res, 500, { ok: false, error: "No pudimos enviar tu solicitud. Intenta de nuevo en unos minutos." });
     }
   }
 
@@ -626,13 +671,20 @@ const server = createServer(async (req, res) => {
     if (data.archivoBase64.includes(",")) {
       data.archivoBase64 = data.archivoBase64.split(",").pop();
     }
+    if (!archivoEsValido(data.archivoNombre, data.archivoBase64)) {
+      return send(res, 400, {
+        ok: false,
+        error: "El archivo no es un PDF o Word válido",
+        campos: { archivoNombre: "El archivo no es un PDF o Word válido" },
+      });
+    }
     data.asunto = `Hoja de vida - ${data.cargo} - ${data.nombre}`;
 
     const result = await sendWithBrevo(data, MAIL_TRABAJA);
     return send(res, 200, { ok: true, messageId: result.messageId });
   } catch (error) {
     console.error("Error al enviar:", error.message);
-    return send(res, 500, { ok: false, error: error.message });
+    return send(res, 500, { ok: false, error: "No pudimos enviar tu hoja de vida. Intenta de nuevo en unos minutos." });
   }
 });
 
