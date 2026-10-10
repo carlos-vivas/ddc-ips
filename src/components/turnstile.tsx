@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 
-// Site key pública del widget. En local (pnpm dev) se usa la de pruebas de
-// Cloudflare, que siempre pasa y funciona en localhost.
-const SITEKEY = import.meta.env.DEV
-  ? "1x00000000000000000000AA"
-  : "0x4AAAAAAFTD8k3upFGPSAg7";
+// Site key pública del widget. En local se toma de VITE_TURNSTILE_SITEKEY
+// (.env, widget que permite localhost); en producción, la de ddc-ips.com.
+const SITEKEY =
+  import.meta.env.VITE_TURNSTILE_SITEKEY || "0x4AAAAAAFTD8k3upFGPSAg7";
 
 type OpcionesTurnstile = {
   sitekey: string;

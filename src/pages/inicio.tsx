@@ -282,48 +282,49 @@ export default function Home() {
 
         <section
           aria-label="Contador de visitas"
-          className="relative overflow-hidden bg-accent-deep text-white"
+          className="bg-accent-deep text-white"
         >
-          <div
-            aria-hidden="true"
-            className="absolute -top-24 -right-20 size-96 rounded-full bg-white/10 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute -bottom-24 -left-20 size-96 rounded-full bg-life/10 blur-3xl"
-          />
-          <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-14">
-            <div className="mx-auto max-w-xl rounded-2xl bg-white/5 px-5 py-7 md:px-10 md:py-9 text-center ring-1 ring-white/10 backdrop-blur">
-              <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 ring-1 ring-white/20">
-                <StarOfLife className="size-3.5 text-white/80" />
-                Contador de visitas
-              </p>
-              <div
-                className="mt-6 flex items-end justify-center gap-1.5 md:gap-2.5"
-                role="status"
-                aria-label={`${visitas ?? 0} visitas`}
-              >
-                {(visitas === null
-                  ? ["—"]
-                  : String(visitasView).padStart(4, "0").split("")
-                ).map((d, i) => (
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16 text-center">
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 ring-1 ring-white/20">
+              <StarOfLife className="size-3.5 text-white/80" />
+              Contador de visitas
+            </p>
+            <div
+              className="mt-7 flex justify-center gap-2 md:gap-3"
+              role="status"
+              aria-label={`${visitas ?? 0} visitas`}
+            >
+              {(() => {
+                if (visitas === null) {
+                  return (
+                    <span className="min-w-12 md:min-w-16 rounded-xl bg-white/10 px-3 py-3 font-display text-4xl md:text-5xl font-semibold text-white/40 ring-1 ring-white/15">
+                      —
+                    </span>
+                  );
+                }
+                const real = String(visitasView);
+                const digitos = real.padStart(4, "0").split("");
+                // Los ceros de relleno van tenues: resalta el número real.
+                const relleno = digitos.length - real.length;
+                return digitos.map((d, i) => (
                   <span
                     key={i}
-                    className="min-w-10 md:min-w-14 rounded-xl bg-linear-to-b from-white/20 to-white/5 px-2.5 py-2 md:py-3 text-center font-display text-3xl md:text-4xl font-semibold tabular-nums text-white ring-1 ring-white/15 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)]"
+                    className={`min-w-12 md:min-w-16 rounded-xl bg-white/10 px-3 py-3 font-display text-4xl md:text-5xl font-semibold tabular-nums ring-1 ring-white/15 ${
+                      i < relleno ? "text-white/25" : "text-white"
+                    }`}
                   >
                     {d}
                   </span>
-                ))}
-              </div>
-              <div
-                aria-hidden="true"
-                className="mx-auto mt-5 h-px w-32 bg-linear-to-r from-transparent via-white/40 to-transparent"
-              />
-              <p className="mt-4 text-sm md:text-base text-white/75 max-w-md mx-auto leading-relaxed">
-                Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
-                seguir mejorando.
-              </p>
+                ));
+              })()}
             </div>
+            <p className="mt-3 text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+              visitas
+            </p>
+            <p className="mt-5 text-sm md:text-base text-white/75 max-w-md mx-auto leading-relaxed">
+              Gracias por visitar a DDC IPS SAS. Cada visita nos impulsa a
+              seguir mejorando.
+            </p>
           </div>
         </section>
 
