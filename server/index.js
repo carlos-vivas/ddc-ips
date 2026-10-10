@@ -1,6 +1,69 @@
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
+import { readFile, stat } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { join, normalize, extname } from "node:path";
 import { Pool } from "pg";
+
+// Carpeta del frontend compilado (vite build). Si no existe (dev local),
+// el servidor solo responde la API y Vite sirve la página.
+const DIST = join(import.meta.dirname, "..", "dist");
+const HAY_DIST = existsSync(join(DIST, "index.html"));
+
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".txt": "text/plain; charset=utf-8",
+};
+
+async function servirEstatico(req, res, ruta) {
+  // Solo archivos dentro de dist (anti path-traversal) y solo lectura.
+  let rel = decodeURIComponent(ruta);
+  if (rel === "/") rel = "/index.html";
+  const archivo = normalize(join(DIST, rel));
+  if (!archivo.startsWith(DIST)) {
+    res.writeHead(403);
+    return res.end();
+  }
+  try {
+    const info = await stat(archivo);
+    if (!info.isFile()) throw new Error("no es archivo");
+    const ext = extname(archivo).toLowerCase();
+    const esIndex = archivo === join(DIST, "index.html");
+    res.writeHead(200, {
+      "Content-Type": MIME[ext] || "application/octet-stream",
+      // Assets con hash: caché larga. index.html: siempre fresco (SPA).
+      "Cache-Control": esIndex ? "no-cache" : "public, max-age=31536000, immutable",
+    });
+    if (req.method === "HEAD") return res.end();
+    res.end(await readFile(archivo));
+  } catch {
+    // Fallback SPA: cualquier ruta no-API devuelve index.html
+    // (así /trabaja-con-nosotros y /pqrs funcionan al recargar).
+    try {
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-cache",
+      });
+      if (req.method === "HEAD") return res.end();
+      res.end(await readFile(join(DIST, "index.html")));
+    } catch {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: "No encontrado" }));
+    }
+  }
+}
 
 const PORT = process.env.PORT || 3001;
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
@@ -380,6 +443,10 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method !== "POST" || ruta !== "/api/contacto") {
+    // Frontend compilado (mismo puerto = adiós 405 y adiós CORS en prod).
+    if ((req.method === "GET" || req.method === "HEAD") && HAY_DIST) {
+      return servirEstatico(req, res, ruta);
+    }
     return send(res, 404, { ok: false, error: "Ruta no encontrada" });
   }
 
