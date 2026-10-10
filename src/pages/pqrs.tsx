@@ -91,7 +91,7 @@ export default function Pqrs() {
 
       <main className="bg-white text-ink">
         <section className="grid lg:grid-cols-2 min-h-[calc(100svh-7.5rem)]">
-          <figure className="relative min-h-[36vh] lg:min-h-full overflow-hidden bg-[#1a1214]">
+          <figure className="relative min-h-[36vh] overflow-hidden bg-[#1a1214] lg:sticky lg:top-[7.5rem] lg:h-[calc(100svh-7.5rem)] lg:self-start">
             <img
               src="/pqrs.jpeg"
               alt="Atención al usuario en la institución"
